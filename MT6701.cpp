@@ -25,7 +25,6 @@ void MT6701::initEncoder(){
   totalAngle = 0;
   numberOfTurns = 0;
   startAngle = getRawAngle(); // zero angle
-
 }
 
 // get 14-bit raw sensor value

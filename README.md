@@ -1,6 +1,6 @@
 # Arduino MT6701 library
 
-A simple library to read and calculate MT6701 angle values using I2C.
+A simple library to interface with the MT6701 magnetic encoder through I2C.
 
 ## Functions
 1) `MT6701.initEncoder`: initialize I2C communication, zeroes starting angle. No return value

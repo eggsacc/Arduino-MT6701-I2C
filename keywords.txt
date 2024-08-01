@@ -1,0 +1,25 @@
+#######################################
+# Syntax Coloring Map For MT6701
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+MT6701	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+initEncoder	KEYWORD2
+getRawAngle	KEYWORD2
+getAbsoluteAngleRadians	KEYWORD2
+getAbsoluteAngleDegrees	KEYWORD2
+getTotalAngleRadians	KEYWORD2
+getTotalAngleDegrees	KEYWORD2
+
+
+#######################################
+# Constants (LITERAL1)
+#######################################

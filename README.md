@@ -1,6 +1,6 @@
 # Arduino MT6701 library
 
-A simple library to interface with the MT6701 magnetic encoder through I2C.
+A simple library to interface with the MT6701 magnetic encoder through I2C. Only tested to work on Arduino and ESP32 so far.
 
 ## Encoder setup
 

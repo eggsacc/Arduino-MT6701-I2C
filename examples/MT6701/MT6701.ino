@@ -5,8 +5,11 @@
 
 #include <MT6701.h>
 
+#define DIRECTION 1
+#define ZERO_ENCODER 0
+
 // create encoder object
-MT6701 encoder;
+MT6701 encoder(DIRECTION, ZERO_ENCODER);
 
 void setup() {
   // put your setup code here, to run once:
@@ -22,16 +25,16 @@ void loop() {
   int rawAngle = encoder.getRawAngle();
 
   // absolute angle in radians (0-2pi)
-  float absoluteRadians = encoder.getAbsoluteAngleRadians();
+  float absoluteRadians = encoder.getAbsoluteAngle();
 
   // absolute angle in degrees (0-360)
   float absoluteDegrees = encoder.getAbsoluteAngleDegrees();
 
   // total angle in radians
-  float totalRadians = encoder.getTotalAngleRadians();
+  float totalRadians = encoder.getAngle();
 
   // total angle in degrees
-  float totalDegrees = encoder.getTotalAngleDegrees();
+  float totalDegrees = encoder.getAngleDegrees();
   
   Serial.print("Raw: ");
   Serial.print(rawAngle);

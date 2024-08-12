@@ -3,18 +3,15 @@
 
 /*
  * A simple library to obtain MT6701 sensor data through i2c.
- * Default i2c address for encoder is 0x06, SDA -> pin A4, SCL -> pin A5.
+ * Default i2c address for encoder is 0x06, SDA->pin A4, SCL->pin A5. For ESP32, SDA->GPIO21, SCL->GPIO22.
  * MT6701 datasheet: https://www.lcsc.com/datasheet/lcsc_datasheet_2109011830_Magn-Tek-MT6701CT-STD_C2856764.pdf
  * Reference tutorial for code: https://curiousscientist.tech/blog/as5600-magnetic-position-encoder (Thanks!)
  */
 
-// I2C address
-#define I2C_AD 0x06
-
-// determines if angle increments when rotated clockwise or anti-clockwise. set to 1 or -1
-#define dir -1
-
-MT6701::MT6701() : lowbyte(0), highbyte(0), rawAngle(0), startAngle(0), correctedRawAngle(0), quadrant(0), prevQuadrant(0), numberOfTurns(0), totalAngle(0) {}
+MT6701::MT6701(int8_t dir, bool zero_angle){
+  _dir = dir;
+  _zero_angle = zero_angle;
+}
 
 // init: begin I2C comminication, zero starting angle
 void MT6701::initEncoder(){
@@ -24,10 +21,10 @@ void MT6701::initEncoder(){
   while(Wire.endTransmission() != 0); // Blocks until encoder acknowledges i2c request  
   totalAngle = 0;
   numberOfTurns = 0;
-  startAngle = getRawAngle(); // zero angle
+  startAngle = _zero_angle ? getRawAngle() : 0;
 }
 
-// get 14-bit raw sensor value
+// get new 14-bit raw sensor value
 int MT6701::getRawAngle() {
 
   Wire.beginTransmission(I2C_AD);
@@ -63,21 +60,30 @@ int MT6701::getRawAngle() {
   return rawAngle; // int value 0-16383
 }
 
-// constrains raw angle in range 0-16383
+// constrains raw angle in range 0-16383. Also corrects for direction & zeroing.
 int MT6701::correctAngle(){
-  int offsetAngle = dir * (rawAngle - startAngle);
+
+  offsetAngle = _zero_angle ? _dir * (rawAngle - startAngle) : _dir * rawAngle;
+
+  // if(_dir){
+  //   offsetAngle = _zero_angle ? -1 * (rawAngle - startAngle) : -1 * rawAngle;
+  // }
+  // else {
+  //   offsetAngle = _zero_angle ? (rawAngle - startAngle) : rawAngle;
+  // }
+
   correctedRawAngle = (offsetAngle < 0) ? offsetAngle + 16384 : offsetAngle;
   return correctedRawAngle; // int value 0-16383
 }
 
-float MT6701::getAbsoluteAngleRadians() {
+float MT6701::getAbsoluteAngle() {
   getRawAngle();
-  return correctAngle() / 8192.0 * PI;
+  return correctAngle() * rawToRad;
 }
 
 float MT6701::getAbsoluteAngleDegrees() {
   getRawAngle();
-  return correctAngle() / 16384.0 * 360;
+  return correctAngle() * rawToDeg;
 }
 
 float MT6701::calculateTotalAngle() {
@@ -91,8 +97,10 @@ float MT6701::calculateTotalAngle() {
     If angle was previously in quadrant 1 and is now in quadrant 4, means 1 clockwise cycle complete.
     If angle was previously in quadrant 4 and is now in quadrant 1, means 1 counter clockwise cycle complete.
   */
+  getRawAngle();
+  correctAngle();
 
-  // assign quadrant number base on angle
+  // assign quadrant number based on angle
   quadrant = (correctedRawAngle >= 0 && correctedRawAngle <= 4096) ? 1 :
              (correctedRawAngle >= 12288 && correctedRawAngle <= 16384) ? 4 : 2;
 
@@ -107,20 +115,17 @@ float MT6701::calculateTotalAngle() {
     prevQuadrant = quadrant;
   }
   
-  // converted to radians since it is more used in programs
-  totalAngle = numberOfTurns * 2 * PI + correctedRawAngle / 8192.0 * PI; 
+  // converted to total radians 
+  totalAngle = numberOfTurns * _2PI + correctedRawAngle * rawToRad; 
 
   return totalAngle; 
 }
 
-float MT6701::getTotalAngleRadians() {
-  getRawAngle();
-  correctAngle();
+float MT6701::getAngle() {
   return calculateTotalAngle();
 }
 
-float MT6701::getTotalAngleDegrees() {
-  getRawAngle();
-  correctAngle();
-  return (calculateTotalAngle() / (2 * PI)) * 360;
+float MT6701::getAngleDegrees() {
+  return calculateTotalAngle() * radToDeg;
 }
+
